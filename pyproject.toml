@@ -7,11 +7,12 @@ name = "mcp-validation-server"
 version = "0.1.0"
 description = "MCP server for input validation (email, phone, URL, regex)"
 requires-python = ">=3.10"
-dependencies = [
-    "mcp>=1.0.0",
-]
+dependencies = []
 
 [project.optional-dependencies]
+mcp = [
+    "mcp>=1.0.0",
+]
 dev = [
     "pytest>=7.0.0",
 ]
