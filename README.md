@@ -17,14 +17,17 @@ A modular Model Context Protocol (MCP) server providing input validation tools f
 ## Installation
 
 ```bash
-# Clone or navigate to project
-cd /Users/pawan/pawan/dev/python/MCPs
+# For library usage (import validators)
+pip install git+https://github.com/pawan-loc/mcp-validator-server.git
 
-# Install with pip
-pip install -e .
+# For MCP server usage
+pip install "git+https://github.com/pawan-loc/mcp-validator-server.git#egg=mcp-validation-server[mcp]"
 
-# Or with uv (recommended)
-uv pip install -e .
+# For standalone HTTP API
+pip install "git+https://github.com/pawan-loc/mcp-validator-server.git#egg=mcp-validation-server[api]"
+
+# Install everything
+pip install "git+https://github.com/pawan-loc/mcp-validator-server.git#egg=mcp-validation-server[all]"
 ```
 
 ## Usage
@@ -99,6 +102,70 @@ def validate_email_endpoint(email: str):
         raise HTTPException(status_code=400, detail=result['message'])
     return result
 ```
+
+---
+
+### Option 3: As Standalone HTTP API (Recommended for Production)
+
+Run the validation server as a standalone HTTP service - **no installation needed** in your client projects!
+
+#### Start the API Server
+
+```bash
+# In the MCP validator project
+cd /path/to/mcp-validator-server
+pip install ".[api]"
+python -m uvicorn mcp_validation_server.api:app --host 0.0.0.0 --port 8000
+```
+
+Server runs at `http://localhost:8000`
+
+#### Use from Django (No Installation Required!)
+
+Copy `clients/django_client.py` to your Django project, then:
+
+```python
+# In your Django views.py - just copy the client file, no pip install!
+from .django_client import validate_email, validate_phone, validate_url
+
+def register_user(request):
+    email = request.POST.get('email')
+    
+    # Calls HTTP API - no dependencies needed!
+    result = validate_email(email)
+    if not result['valid']:
+        return JsonResponse({'error': result['message']}, status=400)
+    
+    return JsonResponse({'success': True})
+```
+
+#### Or Use Requests Directly
+
+```python
+import requests
+
+# Call the API directly
+response = requests.post(
+    "http://localhost:8000/validate/email",
+    json={"email": "test@example.com"}
+)
+result = response.json()
+# {'valid': True, 'input': 'test@example.com', 'message': 'Valid email format'}
+```
+
+#### API Endpoints
+
+- `GET /` - Health check
+- `POST /validate/email` - Validate email
+- `POST /validate/phone` - Validate phone
+- `POST /validate/url` - Validate URL
+- `POST /validate/regex` - Validate with custom regex
+
+**Advantages:**
+- ✅ No dependencies in client projects
+- ✅ Works with any language (Python, JavaScript, PHP, etc.)
+- ✅ Easy to scale and deploy
+- ✅ Centralized validation logic
 
 ---
 
