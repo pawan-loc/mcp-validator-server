@@ -29,7 +29,84 @@ uv pip install -e .
 
 ## Usage
 
-### With Claude Desktop
+You can use this project in **two ways**:
+
+### Option 1: As a Python Library (No AI/MCP Required)
+
+Use the validators directly in your Python projects (Django, Flask, FastAPI, etc.):
+
+#### Installation
+```bash
+# Install from GitHub
+pip install git+https://github.com/pawan-loc/mcp-validator-server.git
+
+# Or install locally
+pip install -e /path/to/mcp-validator-server
+```
+
+#### Usage in Your Code
+```python
+from mcp_validation_server.validators.email import validate_email
+from mcp_validation_server.validators.phone import validate_phone
+from mcp_validation_server.validators.url import validate_url
+from mcp_validation_server.validators.custom_regex import validate_regex
+
+# Validate email
+result = validate_email("user@example.com")
+print(result)  # {'valid': True, 'input': 'user@example.com', 'message': 'Valid email format'}
+
+# Validate phone
+phone_result = validate_phone("+12025551234")
+print(phone_result)  # {'valid': True, ...}
+
+# Validate URL
+url_result = validate_url("https://example.com")
+print(url_result)  # {'valid': True, 'details': {...}}
+
+# Custom regex
+regex_result = validate_regex("ABC123", r"^[A-Z]{3}\d{3}$", "")
+print(regex_result)  # {'valid': True, 'match': 'ABC123'}
+```
+
+#### Django Example
+```python
+# In your Django views.py or forms.py
+from mcp_validation_server.validators.email import validate_email
+from django.http import JsonResponse
+
+def register_user(request):
+    email = request.POST.get('email')
+    
+    result = validate_email(email)
+    if not result['valid']:
+        return JsonResponse({'error': result['message']}, status=400)
+    
+    # Continue with registration...
+    return JsonResponse({'success': True})
+```
+
+#### FastAPI Example
+```python
+from fastapi import FastAPI, HTTPException
+from mcp_validation_server.validators.email import validate_email
+
+app = FastAPI()
+
+@app.post("/validate-email")
+def validate_email_endpoint(email: str):
+    result = validate_email(email)
+    if not result['valid']:
+        raise HTTPException(status_code=400, detail=result['message'])
+    return result
+```
+
+---
+
+### Option 2: As an MCP Server (For AI Clients)
+
+Use with AI assistants like Claude Desktop:
+
+#### With Claude Desktop
 
 Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
 
@@ -47,7 +124,7 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 
 Restart Claude Desktop, then use validation tools in your conversations!
 
-### Standalone Testing
+#### Standalone MCP Testing
 
 ```bash
 # Run the server
