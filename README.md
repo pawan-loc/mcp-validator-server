@@ -17,17 +17,12 @@ A modular Model Context Protocol (MCP) server providing input validation tools f
 ## Installation
 
 ```bash
-# For library usage (import validators)
+# Install from GitHub
 pip install git+https://github.com/pawan-loc/mcp-validator-server.git
 
-# For MCP server usage
-pip install "git+https://github.com/pawan-loc/mcp-validator-server.git#egg=mcp-validation-server[mcp]"
-
-# For standalone HTTP API
-pip install "git+https://github.com/pawan-loc/mcp-validator-server.git#egg=mcp-validation-server[api]"
-
-# Install everything
-pip install "git+https://github.com/pawan-loc/mcp-validator-server.git#egg=mcp-validation-server[all]"
+# Or install locally
+cd /path/to/mcp-validator-server
+pip install -e .
 ```
 
 ## Usage
@@ -105,71 +100,7 @@ def validate_email_endpoint(email: str):
 
 ---
 
-### Option 3: As Standalone HTTP API (Recommended for Production)
-
-Run the validation server as a standalone HTTP service - **no installation needed** in your client projects!
-
-#### Start the API Server
-
-```bash
-# In the MCP validator project
-cd /path/to/mcp-validator-server
-pip install ".[api]"
-python -m uvicorn mcp_validation_server.api:app --host 0.0.0.0 --port 8000
-```
-
-Server runs at `http://localhost:8000`
-
-#### Use from Django (No Installation Required!)
-
-Copy `clients/django_client.py` to your Django project, then:
-
-```python
-# In your Django views.py - just copy the client file, no pip install!
-from .django_client import validate_email, validate_phone, validate_url
-
-def register_user(request):
-    email = request.POST.get('email')
-    
-    # Calls HTTP API - no dependencies needed!
-    result = validate_email(email)
-    if not result['valid']:
-        return JsonResponse({'error': result['message']}, status=400)
-    
-    return JsonResponse({'success': True})
-```
-
-#### Or Use Requests Directly
-
-```python
-import requests
-
-# Call the API directly
-response = requests.post(
-    "http://localhost:8000/validate/email",
-    json={"email": "test@example.com"}
-)
-result = response.json()
-# {'valid': True, 'input': 'test@example.com', 'message': 'Valid email format'}
-```
-
-#### API Endpoints
-
-- `GET /` - Health check
-- `POST /validate/email` - Validate email
-- `POST /validate/phone` - Validate phone
-- `POST /validate/url` - Validate URL
-- `POST /validate/regex` - Validate with custom regex
-
-**Advantages:**
-- ✅ No dependencies in client projects
-- ✅ Works with any language (Python, JavaScript, PHP, etc.)
-- ✅ Easy to scale and deploy
-- ✅ Centralized validation logic
-
----
-
-### Option 2: As an MCP Server (For AI Clients)
+### Option 2: As an MCP Server (For AI Clients - Industry Standard)
 
 Use with AI assistants like Claude Desktop:
 
@@ -255,15 +186,14 @@ validate_regex("Hello123", r"\d+", "")
 
 ## Architecture
 
-Modular design with self-registering validators:
+ModulTesting with MCP Inspector
 
+```bash
+# Use MCP Inspector for interactive testing
+npx @modelcontextprotocol/inspector python -m mcp_validation_server
 ```
-src/mcp_validation_server/
-├── server.py           # FastMCP instance
-├── __main__.py         # Entry point
-└── validators/
-    ├── email.py        # @mcp.tool()
-    ├── phone.py        # @mcp.tool()
+
+**This is the industry-standard way to use MCP** - AI clients communicate with your server via stdio transport. ├── phone.py        # @mcp.tool()
     ├── url.py          # @mcp.tool()
     └── custom_regex.py # @mcp.tool()
 ```
